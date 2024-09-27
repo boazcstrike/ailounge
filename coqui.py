@@ -10,8 +10,8 @@ tts = TTS()
 tts = TTS(model_name="tts_models/en/ek1/tacotron2", progress_bar=False).to(device)
 file_path = "dump/response_092824024026.txt"
 with open(file_path, "r") as file:
-  content = file.read()
-content = re.sub(r'\[chat#\d+\]AI\[\d+\]:', '', content).strip()
+    content = file.read()
+content = re.sub(r"\[chat#\d+\]AI\[\d+\]:", "", content).strip()
 tts.tts_to_file(f"this is a test! This. Test.", file_path="dump/tts/output.wav")
 
 

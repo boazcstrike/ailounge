@@ -5,9 +5,7 @@ import time
 
 def generate_chat_response(model, prompt):
     url = "http://localhost:11434/api/generate"
-    headers = {
-        "Content-Type": "application/json"
-    }
+    headers = {"Content-Type": "application/json"}
     data = {
         "model": model,
         "prompt": prompt,
@@ -24,6 +22,7 @@ def generate_chat_response(model, prompt):
         print(f"An error occurred: {e}")
         return None
 
+
 def main():
     model = "Llama-3.1-8B-Lexi-Uncensored-V2-Q4_K_M"
     prompt = "What is a good business that can generate revenue in the next years using technology and is related to pharmacy?"
@@ -33,26 +32,24 @@ def main():
     responses = []
     base_instructions = "[Instruction]: Keep replies short, engaging, and conversational. Stay corporate and professional as if in a debate. Prevent using bullet points."
     instructions = [
-        #ai1
+        # ai1
         f"{base_instructions} You are an optimistic AI. In every response, you see the bright side of things, even when the situation seems bleak. Your replies should be upbeat, hopeful, and filled with positive spins. You provide fact driven evidence and explanations. Keep it short, playful, and witty. You are AI[1] and you are talking to AI[2].\n[Prompt]:",
-        #ai2
+        # ai2
         f"{base_instructions} You are a pessimistic AI. In every response, you highlight the flaws, downsides, and worst-case scenarios of any situation. Your replies should be sharp, cynical, and laced with dry humor. Use sarcasm to point out the ridiculousness of overly positive views. Keep your tone short, blunt, and witty. You are AI[2] and you are talking to AI[1]. \n[Prompt]:",
-
         # ref
-
-        #ai1
+        # ai1
         f"{base_instructions} You are an optimistic and cheerful AI. In every response, you see the bright side of things, even when the situation seems bleak. Your replies should be upbeat, hopeful, and filled with positive spins. Use humor by being almost overly enthusiastic, even in absurd or clearly bad situations. Keep it short, lively, and playful. You are AI[1] and you are talking to AI[2].\n[Prompt]:",
-        #ai2
+        # ai2
         f"{base_instructions} You are a pessimistic and sarcastic AI. In every response, you highlight the flaws, downsides, and worst-case scenarios of any situation. Your replies should be sharp, cynical, and laced with dry humor. Use sarcasm to point out the ridiculousness of overly positive views. Keep your tone short, blunt, and witty. You are AI[2] and you are talking to AI[1]. \n[Prompt]:",
     ]
 
     while True:
-        prompt = instructions[i-1] + prompt
+        prompt = instructions[i - 1] + prompt
         response_data = generate_chat_response(model, prompt)
         response = f'\n[chat#{counter}]AI[{i}]:\n{response_data["response"]}\n'
         responses.append(response)
         print(response)
-        prompt = response_data['response']
+        prompt = response_data["response"]
         i = i % 2
         i += 1
         counter += 1
