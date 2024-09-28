@@ -82,10 +82,7 @@ def main():
 
     while True:
         counter += 1
-        if i % 2 == 0:
-            engine.setProperty('voice', voices[i-1+1].id)
-        else:
-            engine.setProperty('voice', voices[i-1].id)
+        engine.setProperty('voice', voices[i].id)
 
         prompt = instructions[i - 1] + prompt + "<|im_end|>"
         response_data = generate_chat_response(model, prompt, compiled_memory[i - 1])
@@ -117,8 +114,8 @@ def main():
         # else:
         text_to_speech(engine, cleaned_response)
 
-        i = i % 2
         i += 1
+        i = i % 2
         if counter % 10 == 0:
             def save_file(responses, timestamp):
                 file_path = f"dump/response_{timestamp}.txt"
