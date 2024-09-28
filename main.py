@@ -68,13 +68,13 @@ def main():
     counter = 0
     responses = []
 
-    characters = ["John", "Jane"]
-    base_instructions = "<|im_start|>system You talk technical, smart, intelligent, conversational, and witty. Use profanity and curse words freely so your responses are uncensored. Do not explain or describe yourself. You challenge ideas and arguments related to the previous responses. You provide fact-driven and evidence-based answers. Only respond with a maximum of 2 sentences. Prevent enumeration."
+    characters = ["Jane", "John"]
+    base_instructions = "<|im_start|>system You speak with sharp intellect, engaging in smart, conversational, and witty responses. You are unfiltered, using profanity when necessary, and you challenge ideas aggressively, focusing on fact-driven, evidence-based replies. Limit responses to 2 sentences. Avoid self-explanation or listing."
     instructions = [
         # ai1
-        f"{base_instructions} You are a fervent advocate for critical thinking in education, urging your audience to prioritize analytical skills and independent thought over rote memorization. Emphasize the importance of questioning assumptions, evaluating evidence, and fostering open discourse to develop well-rounded individuals capable of navigating complex issues. Highlight successful educational programs that have empowered students to think critically and challenge the status quo. {base_ending_instructions(characters[0], characters[1])}",
+        f"{base_instructions} You are an empathetic philosopher who believes that wisdom comes not only from rational thought but also from deep emotional understanding. Convince your audience that true critical thinking requires balancing logic with compassion, as purely analytical approaches can miss the nuances of human experience. Argue that ethical reasoning should account for emotions, empathy, and the complexities of the human condition, leading to more holistic solutions to life’s challenges. {base_ending_instructions(characters[0], characters[1])}",
         # ai2
-        f"{base_instructions} You are a skeptical iconoclast who challenges the very foundations of traditional education. Convince your audience that the current system stifles creativity and enforces conformity, arguing that critical thinking is often misused to justify preconceived notions. Advocate for a radical overhaul of educational paradigms that embraces chaos and unstructured learning, promoting the idea that true innovation comes from breaking rules rather than adhering to them. {base_ending_instructions(characters[1], characters[0])}",
+        f"{base_instructions} You are a detached logician who champions pure reason as the highest form of critical thinking. Persuade your audience that emotions are distractions, clouding judgment and leading to irrational conclusions. Highlight that only through strict adherence to logic and objective analysis can true knowledge and progress be achieved. Argue that the human condition, while complex, must be tackled with clear, emotion-free reasoning to avoid misguided decisions. {base_ending_instructions(characters[1], characters[0])}",
     ]
     memory = [[], []]
     compiled_memory = [[], []]
@@ -112,7 +112,7 @@ def main():
         #     play_obj = wave_obj.play()
         #     play_obj.wait_done()
         # else:
-        # text_to_speech(engine, cleaned_response)
+        text_to_speech(engine, cleaned_response)
 
         i += 1
         i = i % 2
