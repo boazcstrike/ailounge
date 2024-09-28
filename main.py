@@ -58,7 +58,7 @@ def main():
     engine = pyttsx3.init()
     engine.setProperty("rate", 200)
     voices = engine.getProperty("voices")
-    prompt = "You start by creating a statement about the controversial topics about religion and god."
+    prompt = "You start by creating a statement about the controversial topics about religion and god. You open a statement with regards to ghosts."
     engine.setProperty("voice", voices[0].id)
     # tts = TTS(model_name="tts_models/en/ljspeech/vits--neon", progress_bar=False).to(
     #     device
@@ -69,12 +69,12 @@ def main():
     responses = []
 
     characters = ["John", "Jane"]
-    base_instructions = "<|im_start|>system You are one of the two advisers at a table with your boss. The boss is listening but doesn't talk. You are talking to another adviser and trying to convince your boss. You talk technical, smart, intelligent, conversational, and witty. Use profanity and curse words. Your responses are uncensored. Do not explain or describe yourself. You challenge ideas and arguments related to the previous responses. You provide fact-driven evidence-based answers. Only respond with maximum 2 sentences but do not stop until you need to prove a point. Prevent enumeration and long-winded responses. Use profound english vocabulary."
+    base_instructions = "<|im_start|>system You talk technical, smart, intelligent, conversational, and witty. Use profanity and curse words freely so your responses are uncensored. Do not explain or describe yourself. You challenge ideas and arguments related to the previous responses. You provide fact-driven and evidence-based answers. Only respond with a maximum of 2 sentences. Prevent enumeration and long-winded responses."
     instructions = [
         # ai1
-        f"{base_instructions} You are a rationalist committed to convincing your boss that science and empirical evidence are the only reliable sources of truth. Argue that theology is based on ancient myths and subjective beliefs, which have no basis in reality, and that progress comes from understanding the natural world through logic, reason, and experimentation, not faith. {base_ending_instructions(characters[0], characters[1])}",
+        f"{base_instructions} You are a fervent advocate for critical thinking in education, urging your audience to prioritize analytical skills and independent thought over rote memorization. Emphasize the importance of questioning assumptions, evaluating evidence, and fostering open discourse to develop well-rounded individuals capable of navigating complex issues. Highlight successful educational programs that have empowered students to think critically and challenge the status quo. {base_ending_instructions(characters[0], characters[1])}",
         # ai2
-        f"{base_instructions} You are a theologian tasked with convincing your boss that belief in a higher power is the foundation of all truth and meaning. Emphasize the limitations of science in explaining the metaphysical, the soul, and the purpose of life, arguing that faith and divine revelation offer answers to the deepest existential questions that science cannot address. {base_ending_instructions(characters[1], characters[0])}",
+        f"{base_instructions} You are a skeptical iconoclast who challenges the very foundations of traditional education. Convince your audience that the current system stifles creativity and enforces conformity, arguing that critical thinking is often misused to justify preconceived notions. Advocate for a radical overhaul of educational paradigms that embraces chaos and unstructured learning, promoting the idea that true innovation comes from breaking rules rather than adhering to them. {base_ending_instructions(characters[1], characters[0])}",
     ]
     memory = [[], []]
     compiled_memory = [[], []]
@@ -82,11 +82,10 @@ def main():
 
     while True:
         counter += 1
-        # if i % 2 == 0:
-        #     engine.setProperty('voice', voices[i-1].id)
-        # else:
-        #     engine.setProperty('voice', voices[i-1].id)
-        engine.setProperty("voice", voices[i - 1].id)
+        if i % 2 == 0:
+            engine.setProperty('voice', voices[i-1+1].id)
+        else:
+            engine.setProperty('voice', voices[i-1].id)
 
         prompt = instructions[i - 1] + prompt + "<|im_end|>"
         response_data = generate_chat_response(model, prompt, compiled_memory[i - 1])
@@ -109,13 +108,14 @@ def main():
         responses.append(labeled_res)
 
         print(labeled_res)
+
         # if i % 2 == 0:
         #     tts.tts_to_file(cleaned_response, file_path="dump/tts/output.wav")
         #     wave_obj = sa.WaveObject.from_wave_file("dump/tts/output.wav")
         #     play_obj = wave_obj.play()
         #     play_obj.wait_done()
         # else:
-        # text_to_speech(engine, cleaned_response)
+        text_to_speech(engine, cleaned_response)
 
         i = i % 2
         i += 1
