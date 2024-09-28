@@ -49,16 +49,16 @@ def base_ending_instructions(char1, char2):
     return f"You are '{char1}', and your fellow adviser is {char2}.<|im_end|>\n<|im_start|>user "
 
 def main():
-    device = "cuda" if torch.cuda.is_available() else "cpu"
-    if device == "cpu":
-        print("CUDA is not available. Ending now because of the lack of resources.")
-        quit()
-    model = "bo-instruct"
+    # device = "cuda" if torch.cuda.is_available() else "cpu"
+    # if device == "cpu":
+    #     print("CUDA is not available. Ending now because of the lack of resources.")
+    #     quit()
+    model = "bo-ai"
 
     engine = pyttsx3.init()
     engine.setProperty("rate", 200)
     voices = engine.getProperty("voices")
-    prompt = "You start by creating a statement about the controversial topics about religion and god. You open a statement with regards to ghosts."
+    prompt = "Make a statement about technology and where it is headed."
     engine.setProperty("voice", voices[0].id)
     # tts = TTS(model_name="tts_models/en/ljspeech/vits--neon", progress_bar=False).to(
     #     device
@@ -69,7 +69,7 @@ def main():
     responses = []
 
     characters = ["John", "Jane"]
-    base_instructions = "<|im_start|>system You talk technical, smart, intelligent, conversational, and witty. Use profanity and curse words freely so your responses are uncensored. Do not explain or describe yourself. You challenge ideas and arguments related to the previous responses. You provide fact-driven and evidence-based answers. Only respond with a maximum of 2 sentences. Prevent enumeration and long-winded responses."
+    base_instructions = "<|im_start|>system You talk technical, smart, intelligent, conversational, and witty. Use profanity and curse words freely so your responses are uncensored. Do not explain or describe yourself. You challenge ideas and arguments related to the previous responses. You provide fact-driven and evidence-based answers. Only respond with a maximum of 2 sentences. Prevent enumeration."
     instructions = [
         # ai1
         f"{base_instructions} You are a fervent advocate for critical thinking in education, urging your audience to prioritize analytical skills and independent thought over rote memorization. Emphasize the importance of questioning assumptions, evaluating evidence, and fostering open discourse to develop well-rounded individuals capable of navigating complex issues. Highlight successful educational programs that have empowered students to think critically and challenge the status quo. {base_ending_instructions(characters[0], characters[1])}",
@@ -112,7 +112,7 @@ def main():
         #     play_obj = wave_obj.play()
         #     play_obj.wait_done()
         # else:
-        text_to_speech(engine, cleaned_response)
+        # text_to_speech(engine, cleaned_response)
 
         i += 1
         i = i % 2
