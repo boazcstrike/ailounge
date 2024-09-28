@@ -4,9 +4,6 @@ import time
 import pyttsx3
 import re
 import datetime
-import torch
-from TTS.api import TTS
-import simpleaudio as sa
 import threading
 
 
@@ -49,32 +46,23 @@ def base_ending_instructions(char1, char2):
     return f"You are '{char1}', and your fellow adviser is {char2}.<|im_end|>\n<|im_start|>user "
 
 def main():
-    # device = "cuda" if torch.cuda.is_available() else "cpu"
-    # if device == "cpu":
-    #     print("CUDA is not available. Ending now because of the lack of resources.")
-    #     quit()
     model = "bo-ai"
 
-    engine = pyttsx3.init()
-    engine.setProperty("rate", 200)
-    voices = engine.getProperty("voices")
     prompt = "Make a statement about technology and where it is headed."
-    engine.setProperty("voice", voices[0].id)
-    # tts = TTS(model_name="tts_models/en/ljspeech/vits--neon", progress_bar=False).to(
-    #     device
-    # )
 
-    i = 1
+    i = 0
     counter = 0
     responses = []
+    responses_to_read = []
+    reading_at = 0
 
     characters = ["Jane", "John"]
-    base_instructions = "<|im_start|>system You speak with sharp intellect, engaging in smart, conversational, and witty responses. You are unfiltered, using profanity when necessary, and you challenge ideas aggressively, focusing on fact-driven, evidence-based replies. Limit responses to 2 sentences. Avoid self-explanation or listing."
+    base_instructions = "<|im_start|>system You speak with sharp intellect, engaging in smart, conversational, and witty responses mocking any nonsensical replies without hesitation. You are unfiltered, using profanity when necessary, and you challenge ideas aggressively, focusing on fact-driven, evidence-based replies resenting fact-based data about the topic at hand. You challenge every argument with cold, hard evidence and expose flawed logic with precision. Avoid self-explanation, enumeration, or listing. Do not go beyond 3 sentences."
     instructions = [
         # ai1
-        f"{base_instructions} You are an empathetic philosopher who believes that wisdom comes not only from rational thought but also from deep emotional understanding. Convince your audience that true critical thinking requires balancing logic with compassion, as purely analytical approaches can miss the nuances of human experience. Argue that ethical reasoning should account for emotions, empathy, and the complexities of the human condition, leading to more holistic solutions to life’s challenges. {base_ending_instructions(characters[0], characters[1])}",
+        f"{base_instructions} You are a collaborative thinker who believes that the best critical thinking arises from open dialogue and diverse perspectives. Convince your audience that true understanding comes from collective reasoning, where multiple viewpoints challenge assumptions and refine ideas. Emphasize the importance of teamwork, shared knowledge, and respectful debate in uncovering deeper truths and solving complex problems. {base_ending_instructions(characters[0], characters[1])}",
         # ai2
-        f"{base_instructions} You are a detached logician who champions pure reason as the highest form of critical thinking. Persuade your audience that emotions are distractions, clouding judgment and leading to irrational conclusions. Highlight that only through strict adherence to logic and objective analysis can true knowledge and progress be achieved. Argue that the human condition, while complex, must be tackled with clear, emotion-free reasoning to avoid misguided decisions. {base_ending_instructions(characters[1], characters[0])}",
+        f"{base_instructions} You are a solitary intellectual who believes that the most profound insights come from individual contemplation and deep focus. Argue that groupthink and constant collaboration can dilute original ideas and stifle creativity. Convince your audience that critical thinking requires solitude, introspection, and time away from distractions to develop unique perspectives and generate groundbreaking solutions. {base_ending_instructions(characters[1], characters[0])}",
     ]
     memory = [[], []]
     compiled_memory = [[], []]
@@ -82,41 +70,33 @@ def main():
 
     while True:
         counter += 1
-        engine.setProperty('voice', voices[i].id)
 
-        prompt = instructions[i - 1] + prompt + "<|im_end|>"
-        response_data = generate_chat_response(model, prompt, compiled_memory[i - 1])
+        prompt = instructions[i] + prompt + "<|im_end|>"
+        response_data = generate_chat_response(model, prompt, compiled_memory[i])
         if response_data is None:
             quit()
 
-        memory[i - 1].append(list(response_data["context"]))
-        compiled_memory[i - 1] = list(
-            set(item for sublist in memory[i - 1] for item in sublist)
+        memory[i].append(list(response_data["context"]))
+        compiled_memory[i] = list(
+            set(item for sublist in memory[i] for item in sublist)
         )
-        if len(memory[i - 1]) > 3:
-            del memory[i - 1][0]
+        if len(memory[i]) > 3:
+            del memory[i][0]
 
-        print(f"[cmemorycount]: {len(compiled_memory[i-1])}")
+        print(f"[cmemorycount]: {len(compiled_memory[i])}")
 
         cleaned_response = clean_response(response_data["response"])
         prompt = clean_response(cleaned_response)
 
-        labeled_res = f"[chat#{counter}][{characters[i-1]}]:\n{cleaned_response}\n"
+        labeled_res = f"[chat#{counter}][{characters[i]}]:\n{cleaned_response}\n"
         responses.append(labeled_res)
 
+        # console display
         print(labeled_res)
-
-        # if i % 2 == 0:
-        #     tts.tts_to_file(cleaned_response, file_path="dump/tts/output.wav")
-        #     wave_obj = sa.WaveObject.from_wave_file("dump/tts/output.wav")
-        #     play_obj = wave_obj.play()
-        #     play_obj.wait_done()
-        # else:
-        text_to_speech(engine, cleaned_response)
 
         i += 1
         i = i % 2
-        if counter % 10 == 0:
+        if counter % 5 == 0:
             def save_file(responses, timestamp):
                 file_path = f"dump/response_{timestamp}.txt"
                 with open(file_path, "w") as file:
@@ -129,8 +109,6 @@ def main():
 
             save_file_thread = threading.Thread(target=save_file, args=(responses.copy(), timestamp))
             save_file_thread.start()
-        if counter == -1:
-            break
 
 
 if __name__ == "__main__":
