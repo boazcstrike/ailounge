@@ -1,5 +1,43 @@
 # AI Lounge Readme
 
+2 AIs chatting
+
+## Setup
+- requirement.txt not updated
+```
+pip install requests pttsx3
+```
+- create a `./dump` folder
+
+## how-to-run
+
+```
+python main.py
+# wait for 1 minute, a .txt file should be created
+python read_chat.py
+```
+
+tested conversation with
+```
+PARAMETER temperature 1
+PARAMETER num_ctx 4096
+PARAMETER repeat_last_n -1
+PARAMETER repeat_penalty 1.2
+PARAMETER top_k 90
+PARAMETER stop "<|im_start|>"
+PARAMETER stop "<|im_end|>"
+TEMPLATE """
+<|im_start|>system
+{{ .System }}<|im_end|>
+<|im_start|>user
+{{ .Prompt }}<|im_end|>
+<|im_start|>assistant
+"""
+SYSTEM """You are a helpful assistant."""
+
+Llama-3.2-3B-Instruct-Q8_0.gguf - sucks
+Llama-3.1-8B-Lexi-Uncensored-V2-Q4_K_M - good
+```
 
 voices list
 ```
