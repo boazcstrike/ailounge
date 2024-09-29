@@ -20,7 +20,7 @@ def main():
     voices = engine.getProperty("voices")
 
     counter = 0
-    file_to_read = input("Enter the .txt file to read from dump (sampleresponse.txt): ")
+    file_to_read = input("Enter the `x.txt` file to read from dump with extension (sampleresponse.txt): ")
     chats = read_file(file_to_read)
     while True:
         counter += 1

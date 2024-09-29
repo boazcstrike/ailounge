@@ -14,7 +14,8 @@ pip install requests pttsx3
 ```
 python main.py
 # wait for 1 minute, a .txt file should be created
-python read_chat.py
+python read.py
+# then just input the x.txt file name with extension
 ```
 
 tested conversation with

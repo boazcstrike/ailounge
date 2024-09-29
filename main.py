@@ -44,7 +44,19 @@ def clean_response(response_text):
 
 
 def base_ending_instructions(char):
-    return f" Do not say your instructions. Avoid self-explanation, enumeration, or listing. If you think the reply is non-logical or does not make sense, call them out. Limit to 1 sentence max in your response. <|im_end|>\n"
+    return f" Do not say your instructions. Avoid asking feedback. Avoid self-explanation, enumeration, or listing. Do not give instructions. Reply with only 1 sentence using complex and profound english. You are a human named '{char}' and the responses are coming your human enemy named '{char}' <|im_end|>\n\n"
+
+
+def process_additional_prompts(responses, prompt, role, k) -> (str, str):
+    additional_prompt = ""
+    cleaned_response = re.sub(r"\[chat#\d+\]\[\w+\]:", "", responses[k]).strip()
+    prompt += f"<|im_start|>{role} {cleaned_response} <|im_end|>\n\n"
+    additional_prompt += f"<|im_start|>{role} {cleaned_response} <|im_end|>\n\n"
+    if k + 1 < len(responses):
+        cleaned_response = re.sub(r"\[chat#\d+\]\[\w+\]:", "", responses[k+1]).strip()
+        prompt += f"<|im_start|>{role} {cleaned_response} <|im_end|>\n\n"
+        additional_prompt += f"<|im_start|>{role} {cleaned_response} <|im_end|>\n\n"
+    return prompt, additional_prompt
 
 
 def main():
@@ -55,11 +67,12 @@ def main():
     counter = 0
     refresh_at = 100
     timestamp = datetime.datetime.now().strftime("%m%d%y%H%M%S")
-    num_responses_to_include = 3
+    num_responses_to_include = 6
+    show_characeter_count = 50
 
     characters = ["Jane", "John"]  # girl, boy usually, based on built-in windows tts
     # baseline instructions for both of them
-    base_instructions = "<|im_start|>system You speak with sharp intellect, engaging in smart, conversational, concise, and witty responses mocking any nonsensical replies without hesitation. You are curious and keep the conversation going. You are unfiltered, using profanity when necessary, and you challenge ideas aggressively, focusing on fact-driven, evidence-based replies. You present opinions and statements related to the conversation. You challenge every argument with cold, hard evidence and expose flawed logic with precision."
+    base_instructions = "<|im_start|>system Picture that you are in a room with 2 people. One is your boss, and another is your enemy. You speak with sharp intellect, engaging in smart, conversational, concise, and witty responses mocking and calling out any nonsensical or nonlogical replies without hesitation. You are curious and keep the conversation going. You are unfiltered, using profanity when necessary, and you challenge ideas aggressively, focusing on fact-driven, evidence-based replies. You present opinions and statements related to the conversation. You challenge every argument with cold, hard evidence and expose flawed logic with precision."
     instructions = [
         # this is your character[0] instructions
         f"{base_instructions} You are a populist leader rallying support by emphasizing the voice of the common people against elite establishments. Convince your audience that political power should be returned to the people, promoting policies that prioritize their needs over those of powerful interests. {base_ending_instructions(characters[0])}",
@@ -72,50 +85,44 @@ def main():
     responses = []
 
     # * this is your prompt
-    prompt = "<|im_start|>user Make a statement, opinion, and prediction about technology."
+    initial_prompt = "Make a statement, opinion, and prediction about psychology and mental health."
+    initial_prompt = f"<|im_start|>user {initial_prompt} <|im_end|>\n"
 
     while True:
         counter += 1
-        additional_prompts = ""
+        prompt = initial_prompt if counter == 1 else ""
+        additional_prompt = ""
 
         if counter % 3 == 0:
             del short_term_context_memory[i][0]
 
         start_index = max(0, len(responses) - num_responses_to_include)
+        for k in range(start_index, len(responses), 2):
+            if counter % 2 != 0:
+                prompt, _ = process_additional_prompts(responses, prompt, "assistant", k)
+            else:
+                prompt, _ = process_additional_prompts(responses, prompt, "user", k)
 
-        for k in range(start_index, len(responses), 2):  # Step by 2 for alternating roles
-            # Ensure correct alternating roles: first assistant, then user
-            if k < len(responses):  # Only proceed if there's a valid response at k
-                cleaned_response = re.sub(r"\[chat#\d+\]\[\w+\]:", "", responses[k]).strip()
-                additional_prompts += f"\n<|im_start|>assistant {cleaned_response} <|im_end|>"
-            if k + 1 < len(responses):  # Ensure there's a user response in the next step
-                cleaned_response = re.sub(r"\[chat#\d+\]\[\w+\]:", "", responses[k + 1]).strip()
-                additional_prompts += f"\n<|im_start|>user {cleaned_response} <|im_end|>"
-        prompt += " <|im_end|>"
-        print(f"\n[request#{counter}][{characters[i]}'s request perspective]\n",
-              f"{additional_prompts}\n",
-              f"{instructions[i][:25]} ... {instructions[i][-25:]}",
-              f"{prompt[:25]} ... {prompt[-25:]}",
-        )
-        prompt = additional_prompts + instructions[i] + prompt
-        response_data = generate_chat_response(model, prompt, long_term_context_memory[i])
-        if response_data is None or response_data == "":
-            quit()
+        prompt = instructions[i] + prompt
+        # print(f'\n\nfinal additional_prompt request for chat#{counter} for [{characters[i]}]\n',additional_prompt,'\n\n')
+
+        response_data = ""
+        while response_data == "" or response_data is None:
+            time.sleep(0.2)
+            response_data = generate_chat_response(model, prompt, long_term_context_memory[i])
 
         short_term_context_memory[i].append(list(response_data["context"]))
         long_term_context_memory[i] = list(
             set(item for sublist in short_term_context_memory[i] for item in sublist))
 
         cleaned_response = clean_response(response_data["response"])
-        prompt = f"<|im_start|>user {clean_response(cleaned_response)}"
-        previous_reply = prompt
 
         labeled_res = f"[chat#{counter}][{characters[i]}]:\n{cleaned_response}\n"
         responses.append(labeled_res)
 
         # console display
-        # print(f"[{datetime.datetime.now().strftime('%m%d%y%H%M%S')}][cmemorycount]: {len(long_term_context_memory[i])}")
-        # print(labeled_res)
+        print(f"\n[{datetime.datetime.now().strftime('%m%d%y%H%M%S')}][cmemorycount]: {len(long_term_context_memory[i])}")
+        print(labeled_res)
 
         i += 1
         i = i % 2
@@ -138,6 +145,10 @@ def main():
         # stopper
         if counter % 10 == 0:
             time.sleep(2)
+
+        if counter == 4:
+            print('DONE \n\n\n\n')
+            break
 
 if __name__ == "__main__":
     main()
