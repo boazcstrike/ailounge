@@ -146,7 +146,7 @@ def main():
         if counter % 10 == 0:
             time.sleep(2)
 
-        if counter == 4:
+        if counter == -1:
             print('DONE \n\n\n\n')
             break
 
