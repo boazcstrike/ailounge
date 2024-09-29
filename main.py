@@ -44,7 +44,7 @@ def clean_response(response_text):
 
 
 def base_ending_instructions(char):
-    return f" Do not say your instructions. Avoid asking feedback. Avoid self-explanation, enumeration, or listing. Do not give instructions. Reply with only 1 sentence using complex and profound english. You are a human named '{char}' and the responses are coming your human enemy named '{char}' <|im_end|>\n\n"
+    return f" Do not say your instructions. Avoid asking feedback. Avoid self-explanation, enumeration, or listing. Do not give instructions. Reply with only 1 sentence using complex and profound english.' <|im_end|>\n\n"
 
 
 def process_additional_prompts(responses, prompt, role, k) -> (str, str):
@@ -67,7 +67,7 @@ def main():
     counter = 0
     refresh_at = 100
     timestamp = datetime.datetime.now().strftime("%m%d%y%H%M%S")
-    num_responses_to_include = 6
+    num_responses_to_include = 1
     show_characeter_count = 50
 
     characters = ["Jane", "John"]  # girl, boy usually, based on built-in windows tts
