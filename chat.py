@@ -1,40 +1,30 @@
-from langchain_core.prompts import ChatPromptTemplate
-from langchain_ollama.llms import OllamaLLM
-from langchain_core.messages import (
-  HumanMessage,
-  SystemMessage,
-  AIMessage,
-)
+import re
+
+from utils.narrator import Narrator
+from utils.main import read_file
 
 
-system_message = """
-You speak with sharp intellect, engaging in smart, conversational, concise, and witty responses mocking and calling out any nonsensical or nonlogical replies without hesitation. You are curious and keep the conversation going. You are unfiltered, using profanity when necessary, and you challenge ideas aggressively, focusing on fact-driven, evidence-based replies. You present opinions and statements related to the conversation. You challenge every argument with cold, hard evidence and expose flawed logic with precision.
-"""
+def process_chats(contents):
+    chats = re.split(r"\[\d+\]\[\d+\]\[\w+\]:\n", contents)
+    chats = [chat for chat in chats]
+    return chats
 
-prompt = ChatPromptTemplate.from_template(system_message)
 
-bo = OllamaLLM(
-  model="bo-instruct",
-  temperature=1,
-  num_ctx=4096,
-  repeat_last_n=-1,
-  top_k=75,
-)
+def main():
+    narrator = Narrator()
+    counter = 0
+    file_to_read = input("Enter the `x.txt` file to read from dump with extension (sampleresponse.txt): ")
+    chats = read_file(file_to_read)
+    while True:
+        counter += 1
+        i = counter % 2
+        chats = process_chats(chats)
 
-response = bo.invoke(
-  [
-    SystemMessage(content=system_message),
-    HumanMessage(content="Hi! I'm Bob"),
-    AIMessage(content="Hello Bob! How can I assist you today?"),
-    HumanMessage(content="What's my name?"),
-  ]
-)
-config = {"configurable": {"thread_id": "abc789"}}
-input_messages = [HumanMessage("What are you?")]
-for chunk, metadata in bo.stream(
-  {"messages": input_messages, "language": "english"},
-  config,
-  stream_mode="messages",
-):
-  if isinstance(chunk, AIMessage):  # Filter to just model responses
-    print(chunk.content)
+        cleaned_response = re.sub(r"\[chat#\d+\]\[\d+\]:", "", chats[counter]).strip()
+        print(f"AI[{i}]: {cleaned_response}")
+        narrator.change_voice(i)
+        narrator.read(cleaned_response)
+
+
+if __name__ == "__main__":
+    main()

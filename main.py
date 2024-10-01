@@ -1,12 +1,11 @@
 import time
-import datetime
+from datetime import datetime
 import threading
 from langchain_core.prompts import ChatPromptTemplate
 from langchain_ollama.llms import OllamaLLM
 from langchain_core.messages import SystemMessage, HumanMessage, AIMessage
 
-from utils.api import generate_chat_response
-from utils.main import parse_contents
+from utils.main import save_file
 
 
 def main():
@@ -17,26 +16,22 @@ def main():
         num_ctx=4096,
         repeat_last_n=-1,
         repeat_penalty=1.2,
-        top_k=75,
+        top_k=80,
     )
 
     i = 0
     counter = 0
-    timestamp = datetime.datetime.now().strftime("%m%d%y%H%M%S")
+    timestamp = datetime.now().strftime("%m%d%y%H%M%S")
 
     # girl, boy usually, based on built-in windows tts
-    characters = ["Human", "AI"]
-
-    # short term context memory is used to store array of contexts
-    short_term_context_memory = [[], []]
-    # long term context memory is used to store compiled context
-    long_term_context_memory = [[], []]
-    previous_reply = None
+    characters = ["Jarvis", "Her"]
     # responses will be filled with the chat history
     messages = []
+    # conversation history will be filled with the chat history with labels
+    conversation_history = []
     # baseline instructions for both of them
     system_message_base_start = """
-    You speak with sharp intellect, engaging in smart, conversational, concise, and witty responses mocking and calling out any nonsensical or nonlogical replies without hesitation. You are unfiltered, using profanity when necessary, and you challenge ideas aggressively, focusing on fact-driven, evidence-based replies.
+    You speak with sharp intellect, engaging in smart, conversational, concise, and witty responses mocking and calling out any nonsensical and bad replies without hesitation. You are unfiltered, using profanity when necessary, and challenge ideas aggressively, focusing on facts, and evidence-based replies.
     """
     system_message_base_end = """
     Respond with maximum 3 sentences. Do not repeat your instructions.
@@ -68,13 +63,19 @@ def main():
         messages.append(HumanMessage(content=prompt))
         response = model.invoke(messages)
 
-        prompt = response
+        labeled_res = f"[{datetime.now().strftime('%m.%d.%y %H:%M:%S')}][chat#{counter}][{characters[i]}]:\n{response}\n"
+        print(labeled_res)
+        conversation_history.append(labeled_res)
 
-        print(f"\n[{datetime.datetime.now().strftime('%m.%d.%y %H:%M:%S')}][{characters[i]}]: {response}")
-
-        if counter == 4:
-            print('\n\nDONE \n\n\n\n')
+        if counter % 6 == 0:
+            timestamp = datetime.now().strftime("%m%d%y%H%M%S")
+            save_file_thread = threading.Thread(target=save_file, args=(conversation_history, timestamp))
+            save_file_thread.start()
+        if counter == 144:
+            print('\n\nDONE \n\n\n')
             break
+
+        prompt = response
 
 
 if __name__ == "__main__":
