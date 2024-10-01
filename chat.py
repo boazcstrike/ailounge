@@ -5,25 +5,23 @@ from utils.main import read_file
 
 
 def process_chats(contents):
-    chats = re.split(r"\[\d+\]\[\d+\]\[\w+\]:\n", contents)
-    chats = [chat for chat in chats]
-    return chats
+    chats = re.split(r'\[\d+\.\d+\.\d+ \d+:\d+:\d+\]\[chat#\d+\]\[(?:Human|AI)\]:\n', contents)
+    return [chat.strip() for chat in chats if chat.strip()]
 
 
 def main():
     narrator = Narrator()
-    counter = 0
-    file_to_read = input("Enter the `x.txt` file to read from dump with extension (sampleresponse.txt): ")
-    chats = read_file(file_to_read)
-    while True:
-        counter += 1
-        i = counter % 2
-        chats = process_chats(chats)
+    chats = read_file("response_100124200721.txt")
+    processed_chats = process_chats(chats)
 
-        cleaned_response = re.sub(r"\[chat#\d+\]\[\d+\]:", "", chats[counter]).strip()
-        print(f"AI[{i}]: {cleaned_response}")
-        narrator.change_voice(i)
+    for i, chat in enumerate(processed_chats):
+        cleaned_response = re.sub(r"\|f5=\d+", "", chat).strip()
+        print(f"Voice {i % 2 + 1}: {cleaned_response}\n")
+        narrator.change_voice(i % 2)
         narrator.read(cleaned_response)
+
+if __name__ == "__main__":
+    main()
 
 
 if __name__ == "__main__":
