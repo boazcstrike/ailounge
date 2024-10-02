@@ -4,9 +4,16 @@ import threading
 from langchain_ollama.llms import OllamaLLM
 from langchain_core.messages import SystemMessage, HumanMessage
 from langchain_core.chat_history import InMemoryChatMessageHistory
+from langchain_core.prompts import (
+    PipelinePromptTemplate,
+    PromptTemplate,
+    ChatPromptTemplate,
+    FewShotChatMessagePromptTemplate,
+)
 
 from utils.main import save_file
 from utils.searcher import Searcher
+
 
 def main():
     # ollama model to use
@@ -61,6 +68,23 @@ def main():
         SystemMessage(content=instructions[1]),
         SystemMessage(content=instructions[2]),
     ]
+    mediator_examples = [
+        {"input": "This is a very bad reply to the context", "output": "0"},
+        {"input": "This is a bad reply to the context", "output": "25"},
+        {"input": "This is a mediocre reply to the context", "output": "50"},
+        {"input": "This is a good reply to the context", "output": "70"},
+        {"input": "This is a great reply to the context", "output": "100"},
+    ]
+    example_mediator_prompt = ChatPromptTemplate.from_messages(
+        [
+            ("human", "{input}"),
+            ("ai", "{output}"),
+        ]
+    )
+    mediator_prompt = FewShotChatMessagePromptTemplate(
+        example_prompt=example_mediator_prompt,
+        examples=mediator_examples,
+    )
     # * this is your prompt
     prompt = "Make a statement of what you believe in about psychology and mental health."
     timestamp = datetime.now().strftime("%m%d%y%H%M%S")
@@ -76,12 +100,6 @@ def main():
         messages.append(HumanMessage(content=prompt))
         response = model.invoke(messages)
 
-        messages = []
-        messages.append(instructions[2])
-        scorer_context = f"[Statement]: {prompt}\n\n[Reply]: {response}"
-        messages.append(HumanMessage(content=scorer_context))
-        score = model.invoke(messages)
-
         labeled_res = f"\n[{datetime.now().strftime('%m.%d.%y %H:%M:%S')}][chat#{counter}][{characters[i]}]:\n{response}\n"
         print(labeled_res)
         conversation_history.append(labeled_res)
@@ -89,9 +107,19 @@ def main():
         # print("conversation_history: ", conversation_history[:35], "...", conversation_history[-35:])
 
         if mediator_enabled == "y":
+            final_mediator_prompt = ChatPromptTemplate.from_messages(
+                [
+                    ("system", instructions[2].content),
+                    mediator_prompt,
+                    ("human", "{input}"),
+                ]
+            )
+            chain = final_mediator_prompt | model
+            score = chain.invoke({prompt + response})
             labeled_res = f"[{datetime.now().strftime('%m.%d.%y %H:%M:%S')}][chat#{counter}][mediator]: {score}"
             print(labeled_res)
             conversation_history.append(labeled_res)
+
         prompt = response
 
         if counter % 6 == 0:
