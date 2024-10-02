@@ -9,7 +9,6 @@ from langchain.prompts import (
 )
 from langchain_community.utilities import SearxSearchWrapper
 from langchain.schema import HumanMessage, SystemMessage
-from langchain_core.output_parsers import StrOutputParser
 
 
 class Searcher():
@@ -17,24 +16,23 @@ class Searcher():
 
     def __init__(self, model):
         self.model = model
-        self.parser = StrOutputParser()
         self.summarizer_prompt = PromptTemplate(
             input_variables=["content"],
             template="Summarize the following content in 2-3 sentences with concise and short words including important details:\n\n{content}"
         )
-        self.summarizer_chain = self.model | self.summarizer_prompt | self.parser
+        self.summarizer_chain = self.model | self.summarizer_prompt
 
         self.query_generator_prompt = PromptTemplate(
             input_variables=["content"],
             template="Generate a 10 word maximum search query based on this content:\n\n{content}\n\nSearch query:"
         )
-        self.query_generator_chain = self.model | self.query_generator_prompt | self.parser
+        self.query_generator_chain = self.model | self.query_generator_prompt
 
         self.result_parser_prompt = PromptTemplate(
             input_variables=["content"],
             template="Summarize the following web page content in 2-3 sentences:\n\n{content}"
         )
-        self.result_parser_chain = self.model | self.result_parser_prompt | self.parser
+        self.result_parser_chain = self.model | self.result_parser_prompt
 
     def summarize_content(self, content):
         result = self.summarizer_chain.invoke(content)

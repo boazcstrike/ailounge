@@ -32,9 +32,10 @@ def save_file(responses, timestamp):
     and prints a confirmation message with the file path.
     """
     file_path = f"dump/response_{timestamp}.txt"
+    # print("responses: ", responses[:50], "...", responses[-50:])
     with open(file_path, "w") as file:
-        for item in responses:
-            file.write(f"{item}\n")
+        responses = "\n".join(responses)
+        file.write(f"{responses}\n")
         print(f"\n[{datetime.now().strftime('%m/%d/%y %H:%M:%S')}] saved to {file_path}\n")
 
 
