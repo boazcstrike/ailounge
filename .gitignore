@@ -2,3 +2,4 @@ dump
 env
 __pycache__
 .env
+text-models/*.gguf
