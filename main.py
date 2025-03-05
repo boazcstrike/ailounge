@@ -21,12 +21,12 @@ from constants import (
 def main():
     # ollama model to use
     model = OllamaLLM(
-        model="bo-instruct",
-        temperature=1,
-        num_ctx=4096,
-        repeat_last_n=-1,
-        repeat_penalty=1.2,
-        top_k=80,
+        model="L3.2-8X3B-MOE-Dark-Champion-Inst-18.4B-uncen-ablit_D_AU-Q3_k_s",
+        # temperature=1,
+        # num_ctx=4096,
+        # repeat_last_n=-1,
+        # repeat_penalty=1.2,
+        # top_k=80,
     )
     # searxng = Searcher(model)
 
