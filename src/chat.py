@@ -14,18 +14,18 @@ def process_chats(contents):
 def main():
     try:
         while True:
-            input_file = input("Enter the file name with extension (`response_100224223459.txt`): ")
+            input_file = input("\n\nEnter the file name with extension (`response_100224223459.txt`): ")
             narrator = Narrator()
             chats = read_file(input_file)
             processed_chats = process_chats(chats)
 
             for i, chat in enumerate(processed_chats):
                 cleaned_response = chat
-                print(f"Voice {i % 2 + 1}: {cleaned_response}\n")
+                print(f"\nVoice {i % 2 + 1}: {cleaned_response}")
                 narrator.change_voice(i % 2)
                 narrator.read(cleaned_response)
     except KeyboardInterrupt:
-        print(colored("ending conversation..." , 'red'))
+        print(colored("ending conversation...\n" , 'red'))
         print("\033[?25h", end="")
         return
 if __name__ == "__main__":

@@ -1,5 +1,6 @@
 from langchain_core.messages import SystemMessage
 from langchain_core.prompts import (
+    PromptTemplate,
     ChatPromptTemplate,
     FewShotChatMessagePromptTemplate,
 )
@@ -60,4 +61,40 @@ final_mediator_prompt = ChatPromptTemplate.from_messages(
         mediator_prompt,
         ("human", "{input}"),
     ]
+)
+reflection_prompt = PromptTemplate(
+    input_variables=["previous_response", "current_answer", "instructions"],
+    template="""
+    Previous Response: {previous_response}
+    Current Answer: {current_answer}
+
+    Reflect and Enhance:
+    - Identify any ambiguities or inaccuracies in the current answer.
+    - Suggest ways to enhance clarity and depth.
+    - Propose logical improvements.
+    - Ensure alignment with the following instructions: {instructions}
+
+    Enhanced Answer:
+    """
+)
+
+think_prompt = PromptTemplate(
+    input_variables=[
+        "user_input", "instructions", 
+        "previous_bot_response", "current_bot_response"],
+    template="""
+    User Input: {user_input}
+    Previous AI Response (if none, then first): {previous_bot_response}
+    Current AI Response: {current_bot_response}
+    Instructions: {instructions}
+
+    Absorb and Reflect:
+    - Analyze the current bot response in the context of the user input and previous bot response.
+    - Identify areas for improvement or clarification.
+    - Suggest enhancements for coherence and depth.
+    - Ensure alignment with the overall conversation flow.
+    - Adjust to instructions
+
+    Refined Bot Response:
+    """
 )
