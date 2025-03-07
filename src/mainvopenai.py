@@ -38,7 +38,7 @@ def main():
             response = client.chat.completions.create(
                 model="gpt-4o",
                 messages=[
-                    {"role": "system", "content": str(instructions[i])},
+                    {"role": "developer", "content": str(instructions[i])},
                     {"role": "user", "content": prompt}
                 ]
             ).choices[0].message.content.strip()
