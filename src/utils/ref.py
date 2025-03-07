@@ -5,6 +5,8 @@ import re
 import datetime
 import threading
 
+from termcolor import colored
+
 
 def text_to_speech(engine, text):
     engine.say(text)
@@ -122,9 +124,11 @@ def main():
         labeled_res = f"[chat#{counter}][{characters[i]}]:\n{cleaned_response}\n"
         responses.append(labeled_res)
 
-        # console display
-        print(f"\n[{datetime.datetime.now().strftime('%m.%d.%y %H:%M:%S')}][cmemorycount]: {len(long_term_context_memory[i])}")
-        print(labeled_res)
+        print(colored(f"\n[{datetime.datetime.now().strftime('%m.%d.%y %H:%M:%S')}][cmemorycount]: {len(long_term_context_memory[i])}", 'red'))
+        if counter % 2 != 0:
+            print(colored(labeled_res, 'green'))
+        else:
+            print(colored(labeled_res, 'on_light_green'))
 
         i += 1
         i = i % 2
