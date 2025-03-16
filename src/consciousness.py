@@ -1,7 +1,7 @@
 from time import sleep
 
 from termcolor import colored
-from constants import reflection_prompt, think_prompt
+from constants.main import reflection_prompt, think_prompt
 
 
 def self_reflect(model, previous_response, current_answer, instructions, iterations=3):
@@ -42,9 +42,9 @@ def open_ai_rethink(client, user_input, current_answer, instructions, iterations
     for _ in range(iterations):
         print(f"\n[thinking...AHA!]\n{colored(answer, 'white')}")
         sleep(0.4)
-        new_answer = model.chat.completions.create(
+        new_answer = client.chat.completions.create(
             model="o3-mini",
-            messages: [
+            messages=[{
                 "role": "user",
                 "content": f"""
                     User Input: {user_input}
@@ -61,7 +61,7 @@ def open_ai_rethink(client, user_input, current_answer, instructions, iterations
 
                     Refined Bot Response:
                     """
-            ])
+            }])
         if not new_answer:
             print("Model returned an empty response.\n")
         answer = new_answer

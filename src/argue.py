@@ -12,7 +12,7 @@ from langchain_core.prompts import (
 
 from utils.main import save_file, parse_contents
 from utils.searcher import Searcher
-from constants import (
+from constants.main import (
     instructions,
     final_mediator_prompt,
 )
