@@ -1,16 +1,18 @@
 import os
+from datetime import datetime
 from dotenv import load_dotenv
 from pathlib import Path
+from textwrap import dedent
 from typing import List
 
 from agno.agent import Agent
 from agno.models.ollama import Ollama
 from agno.models.openai import OpenAIChat
+
 from agno.tools.duckduckgo import DuckDuckGoTools
-from agno.tools.hackernews import HackerNewsTools
 from agno.tools.file import FileTools
 from agno.tools.newspaper4k import Newspaper4kTools
-from agno.tools.yfinance import YFinanceTools
+from agno.tools.exa import ExaTools
 
 from pydantic import BaseModel
 
@@ -24,11 +26,11 @@ class Article(BaseModel):
     reference_links: List[str]
 
 
-urls_file = Path(__file__).parent.joinpath("tmp", "urls__{session_id}.md")
+urls_file = Path(__file__).parent.joinpath("tmp", "{session_id}__urls.md")
 urls_file.parent.mkdir(parents=True, exist_ok=True)
 # model = Ollama(id="llama3.1:8b-instruct-q8_0")
 # model = Ollama(id="QW-6X1.5B-DeepSeek-Qwen-LAM-e32-Q4_K_S") # does not support tools
-model = OpenAIChat(id="gpt-4o-mini", api_key=OPENAI_API_KEY)
+model = OpenAIChat(id="gpt-4o", api_key=OPENAI_API_KEY)
 # model = OpenAIChat(
 #     id="grok-2-latest",
 #     api_key=OPENAI_API_KEY,
@@ -51,6 +53,54 @@ def askainews() -> None:
         add_datetime_to_instructions=True,
         markdown=True,  # unsure as this was removed
     )
+    researches_url_file = Path(__file__).parent.joinpath("tmp", "{session_id}__researches.md")
+    researcher = Agent(
+        model=model,
+        tools=[
+            DuckDuckGoTools(),
+            # ExaTools(start_published_date=datetime.now().strftime("%Y-%m-%d"), type="keyword")
+        ],
+        role="Researches and validates the authenticity of the story.",
+        description="You are a distinguished research scholar with expertise in multiple disciplines.",
+        instructions=dedent(
+            """\
+                - Conduct 3 distinct search terms of the topic
+                - For each search term, search the web and return 5 most relevant URLs to the topic.
+                - Synthesize findings across sources
+            """
+        ),
+        expected_output=dedent(
+            """\
+                A professional research report in markdown format:
+
+                # {Compelling Title That Captures the Topic's Essence}
+
+                ## Introduction
+                {Context and importance of the topic}
+
+                ## Key Findings
+                {Major discoveries or developments}
+                {Supporting evidence and analysis}
+
+                ## Key Takeaways
+                - {Bullet point 1}
+                - {Bullet point 2}
+                - {Bullet point 3}
+
+                ## Sources
+                - [Source 1](link) - Key finding/quote
+                - [Source 2](link) - Key finding/quote
+                - [Source 3](link) - Key finding/quote
+
+                ---
+                Date: {current_date}\
+            """
+        ),
+        add_datetime_to_instructions=True,
+        show_tool_calls=True,
+        markdown=True,
+        save_response_to_file=str(researches_url_file),
+    )
     writer = Agent(
         name="Writer",
         model=model,
@@ -61,9 +111,9 @@ def askainews() -> None:
         ),
         instructions=[
             f"First read all urls in {urls_file.name} using `get_article_text`."
-            "Then write a high-quality NYT-worthy article on the topic."
-            "The article should be well-structured, informative, engaging and catchy.",
-            "Ensure the length is at least as long as a NYT cover story -- at a minimum, 15 paragraphs.",
+            f"Then write a high-quality NYT-worthy article on the topic based on {researches_url_file.name}."
+            "The article should be well-structured, informative, engaging, and catchy.",
+            "Ensure the length is at least as long as a NYT cover story -- at a minimum, 10 paragraphs.",
             "Ensure you provide a nuanced and balanced opinion, quoting facts where possible.",
             "Focus on clarity, coherence, and overall quality.",
             "Never make up facts or plagiarize. Always provide proper attribution.",
@@ -77,11 +127,12 @@ def askainews() -> None:
     editor = Agent(
         name="Editor",
         model=model,
-        team=[journalist, writer],
+        team=[journalist, researcher, writer],
         description="You are a senior NYT editor. Given a topic, your goal is to write a NYT worthy article.",
         instructions=[
             "First ask the search journalist to search for the most relevant URLs for that topic.",
             "Then ask the writer to get an engaging draft of the article.",
+            "Then ask the researcher to validate the findings using fact-based data-driven insights.",
             "Edit, proofread, and refine the article to ensure it meets the high standards of the New York Times.",
             "The article should be extremely articulate and well written including well-placed emojis. "
             "Focus on clarity, coherence, and overall quality.",
@@ -91,7 +142,7 @@ def askainews() -> None:
         markdown=True,
         # debug_mode=True,
         save_response_to_file=str(
-            Path(__file__).parent.joinpath("tmp", "results__{session_id}.md")
+            Path(__file__).parent.joinpath("tmp", "{session_id}__results.md")
         ),
     )
     input_prompt = input("What should we look for?\n💬: ")
