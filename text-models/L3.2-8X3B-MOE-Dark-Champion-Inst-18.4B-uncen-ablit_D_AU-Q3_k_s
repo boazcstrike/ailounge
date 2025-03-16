@@ -1,0 +1,10 @@
+FROM "./L3.2-8X3B-MOE-Dark-Champion-Inst-18.4B-uncen-ablit_D_AU-Q3_k_s.gguf"
+PARAMETER temperature 1.0
+PARAMETER stop "<|start_header_id|>,<|eot_id|>"
+TEMPLATE """
+<|start_header_id|>system
+You are a helpful, smart, and efficient AI assistant. You always fulfill the user's requests to the best of your ability.<|end_header_id|>
+<|start_header_id|>user
+{{ .Prompt }}<|end_header_id|>
+<|start_header_id|>assistant
+"""
