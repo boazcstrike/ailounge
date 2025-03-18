@@ -8,13 +8,17 @@ from typing import List
 from agno.agent import Agent
 from agno.models.ollama import Ollama
 from agno.models.openai import OpenAIChat
-
 from agno.tools.duckduckgo import DuckDuckGoTools
 from agno.tools.file import FileTools
 from agno.tools.newspaper4k import Newspaper4kTools
-from agno.tools.exa import ExaTools
+from agno.tools.newspaper import NewspaperTools
 
 from pydantic import BaseModel
+
+from agentsreader import clean_md_to_script
+from utils.narrator import Narrator, read_w_edge_tts
+from utils.main import read_file
+
 
 load_dotenv()
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
@@ -26,11 +30,14 @@ class Article(BaseModel):
     reference_links: List[str]
 
 
-urls_file = Path(__file__).parent.joinpath("tmp", "{session_id}__urls.md")
+prefix_file_name = datetime.now().strftime("%m%d%Y%H%M%S")
+urls_file = Path(__file__).parent.joinpath("tmp", f"{prefix_file_name}__urls.md")
 urls_file.parent.mkdir(parents=True, exist_ok=True)
 # model = Ollama(id="llama3.1:8b-instruct-q8_0")
+# model = Ollama(id="llama3.1-instruct-steroids")
+# model = Ollama(id="llama3.1-instruct-weakened")
 # model = Ollama(id="QW-6X1.5B-DeepSeek-Qwen-LAM-e32-Q4_K_S") # does not support tools
-model = OpenAIChat(id="gpt-4o", api_key=OPENAI_API_KEY)
+model = OpenAIChat(id="gpt-4o-mini", api_key=OPENAI_API_KEY)
 # model = OpenAIChat(
 #     id="grok-2-latest",
 #     api_key=OPENAI_API_KEY,
@@ -45,7 +52,7 @@ def askainews() -> None:
         role="Searches the top URLs for a topic",
         instructions=[
             "Given a topic, first generate a list of 3 search terms related to that topic.",
-            "For each search term, search the web and analyze the results. Return the 10 most relevant URLs to the topic.",
+            "For each search term, search the web and analyze the results. Return the 5 most relevant URLs to the topic.",
             "You are writing for the New York Times, so the quality of the sources is important.",
         ],
         tools=[DuckDuckGoTools()],
@@ -53,20 +60,20 @@ def askainews() -> None:
         add_datetime_to_instructions=True,
         markdown=True,  # unsure as this was removed
     )
-    researches_url_file = Path(__file__).parent.joinpath("tmp", "{session_id}__researches.md")
+    researches_url_file = Path(__file__).parent.joinpath("tmp", f"{prefix_file_name}__researches.md")
     researcher = Agent(
+        name="Researcher",
         model=model,
         tools=[
-            DuckDuckGoTools(),
-            # ExaTools(start_published_date=datetime.now().strftime("%Y-%m-%d"), type="keyword")
+            NewspaperTools(),
         ],
-        role="Researches and validates the authenticity of the story.",
+        role="Researches and validates the authenticity of the given urls.",
         description="You are a distinguished research scholar with expertise in multiple disciplines.",
         instructions=dedent(
-            """\
-                - Conduct 3 distinct search terms of the topic
-                - For each search term, search the web and return 5 most relevant URLs to the topic.
+            f"""\
+                - Conduct a research on all of the given urls in {urls_file.name}
                 - Synthesize findings across sources
+                - You are checking and writing for the New York Times, so the quality of the sources is important.
             """
         ),
         expected_output=dedent(
@@ -86,11 +93,13 @@ def askainews() -> None:
                 - {Bullet point 1}
                 - {Bullet point 2}
                 - {Bullet point 3}
+                - ...
 
                 ## Sources
                 - [Source 1](link) - Key finding/quote
                 - [Source 2](link) - Key finding/quote
                 - [Source 3](link) - Key finding/quote
+                - ...
 
                 ---
                 Date: {current_date}\
@@ -111,10 +120,10 @@ def askainews() -> None:
         ),
         instructions=[
             f"First read all urls in {urls_file.name} using `get_article_text`."
-            f"Then write a high-quality NYT-worthy article on the topic based on {researches_url_file.name}."
+            "Then write a high-quality NYT-worthy article on the topic."
             "The article should be well-structured, informative, engaging, and catchy.",
+            f"Ensure you provide a nuanced and balanced opinion, quoting facts where possible referencing -- {researches_url_file.name}",
             "Ensure the length is at least as long as a NYT cover story -- at a minimum, 10 paragraphs.",
-            "Ensure you provide a nuanced and balanced opinion, quoting facts where possible.",
             "Focus on clarity, coherence, and overall quality.",
             "Never make up facts or plagiarize. Always provide proper attribution.",
             "Remember: you are writing for the New York Times, so the quality of the article is important.",
@@ -124,29 +133,36 @@ def askainews() -> None:
         markdown=True,  # unsure as this was removed
     )
 
-    editor = Agent(
-        name="Editor",
+    reporter = Agent(
+        name="Reporter",
         model=model,
         team=[journalist, researcher, writer],
-        description="You are a senior NYT editor. Given a topic, your goal is to write a NYT worthy article.",
+        description="You are a senior editor with PhD in Computer Engineering, Computer Science. Given a topic, your goal is to report a world-class worthy article.",
         instructions=[
             "First ask the search journalist to search for the most relevant URLs for that topic.",
             "Then ask the writer to get an engaging draft of the article.",
-            "Then ask the researcher to validate the findings using fact-based data-driven insights.",
-            "Edit, proofread, and refine the article to ensure it meets the high standards of the New York Times.",
-            "The article should be extremely articulate and well written including well-placed emojis. "
+            "Ensure the researcher cross-verifies all claims and data with reliable, fact-based sources.",
+            "Edit, proofread, and refine the article into a script to ensure it meets the high world class standards",
+            "The script should be extremely articulate and well written.",
+            "Do not hesitate to use technical terminology.",
+            "Next, eliminate any unnecessary syntax, emoticons and enumerations to craft the best reporting script.",
             "Focus on clarity, coherence, and overall quality.",
-            "Remember: you are the final gatekeeper before the article is published, so make sure the article is perfect.",
+            "Remember: you are the final gatekeeper before the script is published, so make sure the script is perfect.",
         ],
         add_datetime_to_instructions=True,
         markdown=True,
         # debug_mode=True,
         save_response_to_file=str(
-            Path(__file__).parent.joinpath("tmp", "{session_id}__results.md")
+            Path(__file__).parent.joinpath("tmp", f"{prefix_file_name}_results.md")
         ),
     )
-    input_prompt = input("What should we look for?\n💬: ")
-    editor.print_response(input_prompt, stream=True)
+
+    input_prompt = input("Topic to start with?\n💬: ")
+    reporter.print_response(input_prompt, stream=True)
+
+    content = read_file(f"{prefix_file_name}__results.md")
+    content = clean_md_to_script(content)
+    read_w_edge_tts(content)
 
 
 if __name__ == "__main__":

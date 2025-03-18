@@ -12,7 +12,7 @@ def read_file(file_path):
     Returns:
         str: The contents of the file.
     """
-    with open(f"dump/{file_path}", "r") as file:
+    with open(f"{file_path}", "r", encoding='utf-8') as file:
         content = file.read()
     return content
 

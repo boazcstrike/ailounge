@@ -1,0 +1,9 @@
+FROM llama3.1:8b-instruct-q8_0
+PARAMETER temperature 0.85
+PARAMETER num_ctx 4096
+PARAMETER repeat_last_n -1
+PARAMETER repeat_penalty 1.2
+PARAMETER top_k 90
+PARAMETER stop "<|im_start|>"
+PARAMETER stop "<|im_end|>"
+SYSTEM """You are a helpful assistant."""
