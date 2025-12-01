@@ -57,3 +57,6 @@ coverage_report
 .coverage
 
 agno
+
+# cuz of public concern
+prompts/nsfw

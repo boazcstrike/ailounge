@@ -1,0 +1,16 @@
+__pycache__/
+.git/
+env/
+
+*dump*
+*dumps*
+dump/
+*tmp*
+/tmp
+
+text-models/
+images/
+.idea/
+*.pyc
+*.log
+.DS_Store
