@@ -1,0 +1,13 @@
+# Modelfile
+FROM "./Tess-v2.5-Phi-3-medium-128k-14B.i1-Q4_K_S.gguf"
+
+PARAMETER stop "<|im_start|>"
+PARAMETER stop "<|im_end|>"
+
+TEMPLATE """
+<|im_start|>system
+{{ .System }}<|im_end|>
+<|im_start|>user
+{{ .Prompt }}<|im_end|>
+<|im_start|>assistant
+"""
